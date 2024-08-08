@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MQTT Web Client for Car Control</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+    <style>
+        button {
+            width: 100px;
+            height: 50px;
+            font-size: 16px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>MQTT Web Client for Car Control</h1>
+    <div id="status">Connecting...</div>
+    <button id="forwardButton" disabled>Forward</button>
+    <button id="backwardButton" disabled>Backward</button>
+    <button id="leftButton" disabled>Left</button>
+    <button id="rightButton" disabled>Right</button>
+    <button id="stopButton" disabled>Stop</button>
+
+    <script>
+         const mqttServer = "iot-06z00jmfhon52i5.mqtt.iothub.aliyuncs.com";
+        const mqttPort = 443;
+        const clientId = "k1egtWogWfA.WANGYE|securemode=2,signmethod=hmacsha256,timestamp=1722995284787|";
+        const username = "WANGYE&k1egtWogWfA";
+        const password = "a1197eb588dd9059700b04de7ab4321777b812d05f20cc30c4a9efff21d8116a";
+        const controlTopic = "/k1egtWogWfA/WANGYE/user/get";
+
+        // 创建MQTT客户端实例
+        const client = new Paho.MQTT.Client(mqttServer, mqttPort, clientId);
+
+        // 设置连接选项
+        const options = {
+            useSSL: true,
+            userName: username,
+            password: password,
+            onSuccess: onConnect,
+            onFailure: onFailure
+        };
+
+        // 连接到MQTT服务器
+        client.connect(options);
+
+        // 连接成功回调函数
+        function onConnect() {
+            document.getElementById("status").innerHTML = "Connected!";
+            document.getElementById("forwardButton").disabled = false;
+            document.getElementById("backwardButton").disabled = false;
+            document.getElementById("leftButton").disabled = false;
+            document.getElementById("rightButton").disabled = false;
+            document.getElementById("stopButton").disabled = false;
+            console.log("Connected to MQTT server");
+        }
+
+        // 连接失败回调函数
+        function onFailure(error) {
+            document.getElementById("status").innerHTML = "Connection failed: " + error.errorMessage;
+            console.error("Connection failed: " + error.errorMessage);
+        }
+
+        // 消息到达回调函数
+        client.onMessageArrived = function(message) {
+            console.log("Message received: " + message.payloadString);
+        };
+
+        // 连接断开回调函数
+        client.onConnectionLost = function(responseObject) {
+            if (responseObject.errorCode !== 0) {
+                document.getElementById("status").innerHTML = "Connection lost: " + responseObject.errorMessage;
+                console.error("Connection lost: " + responseObject.errorMessage);
+            }
+        };
+
+        // 按钮事件处理函数
+        document.getElementById("forwardButton").addEventListener("mousedown", function() {
+            sendMessage("move");
+        });
+
+        document.getElementById("forwardButton").addEventListener("mouseup", function() {
+            sendMessage("stop");
+        });
+
+        document.getElementById("backwardButton").addEventListener("mousedown", function() {
+            sendMessage("backward");
+        });
+
+        document.getElementById("backwardButton").addEventListener("mouseup", function() {
+            sendMessage("stop");
+        });
+
+        document.getElementById("leftButton").addEventListener("mousedown", function() {
+            sendMessage("left");
+        });
+
+        document.getElementById("leftButton").addEventListener("mouseup", function() {
+            sendMessage("stop");
+        });
+
+        document.getElementById("rightButton").addEventListener("mousedown", function() {
+            sendMessage("right");
+        });
+
+        document.getElementById("rightButton").addEventListener("mouseup", function() {
+            sendMessage("stop");
+        });
+
+        document.getElementById("stopButton").addEventListener("click", function() {
+            sendMessage("stop");
+        });
+
+        // 发送消息函数
+        function sendMessage(command) {
+            const messageContent = JSON.stringify({ command: command });
+            const message = new Paho.MQTT.Message(messageContent);
+            message.destinationName = controlTopic;
+            client.send(message);
+            console.log(`Message sent: ${messageContent}`);
+        }
+    </script>
+</body>
+</html>
