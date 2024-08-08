@@ -24,7 +24,7 @@
     <button id="stopButton" disabled>Stop</button>
 
     <script>
-         const mqttServer = "iot-06z00jmfhon52i5.mqtt.iothub.aliyuncs.com";
+        const mqttServer = "iot-06z00jmfhon52i5.mqtt.iothub.aliyuncs.com";
         const mqttPort = 443;
         const clientId = "k1egtWogWfA.WANGYE|securemode=2,signmethod=hmacsha256,timestamp=1722995284787|";
         const username = "WANGYE&k1egtWogWfA";
@@ -77,36 +77,20 @@
         };
 
         // 按钮事件处理函数
-        document.getElementById("forwardButton").addEventListener("mousedown", function() {
+        document.getElementById("forwardButton").addEventListener("click", function() {
             sendMessage("move");
         });
 
-        document.getElementById("forwardButton").addEventListener("mouseup", function() {
-            sendMessage("stop");
-        });
-
-        document.getElementById("backwardButton").addEventListener("mousedown", function() {
+        document.getElementById("backwardButton").addEventListener("click", function() {
             sendMessage("backward");
         });
 
-        document.getElementById("backwardButton").addEventListener("mouseup", function() {
-            sendMessage("stop");
-        });
-
-        document.getElementById("leftButton").addEventListener("mousedown", function() {
+        document.getElementById("leftButton").addEventListener("click", function() {
             sendMessage("left");
         });
 
-        document.getElementById("leftButton").addEventListener("mouseup", function() {
-            sendMessage("stop");
-        });
-
-        document.getElementById("rightButton").addEventListener("mousedown", function() {
+        document.getElementById("rightButton").addEventListener("click", function() {
             sendMessage("right");
-        });
-
-        document.getElementById("rightButton").addEventListener("mouseup", function() {
-            sendMessage("stop");
         });
 
         document.getElementById("stopButton").addEventListener("click", function() {
