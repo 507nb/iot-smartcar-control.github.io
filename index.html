@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MQTT Web Client for Car Control</title>
+    <title>MQTT Web客户端控制小车</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
     <style>
         button {
@@ -15,13 +15,13 @@
     </style>
 </head>
 <body>
-    <h1>MQTT Web Client for Car Control</h1>
-    <div id="status">Connecting...</div>
-    <button id="forwardButton" disabled>forward</button>
-    <button id="backwardButton" disabled>backward</button>
-    <button id="leftButton" disabled>left</button>
-    <button id="rightButton" disabled>right</button>
-    <button id="stopButton" disabled>stop</button>
+    <h1>MQTT Web客户端控制小车</h1>
+    <div id="status">连接中...</div>
+    <button id="forwardButton" disabled>前进</button>
+    <button id="backwardButton" disabled>后退</button>
+    <button id="leftButton" disabled>左转</button>
+    <button id="rightButton" disabled>右转</button>
+    <button id="stopButton" disabled>停止</button>
 
     <script>
         const mqttServer = "iot-06z00jmfhon52i5.mqtt.iothub.aliyuncs.com";
@@ -30,6 +30,9 @@
         const username = "WANGYE&k1egtWogWfA";
         const password = "a1197eb588dd9059700b04de7ab4321777b812d05f20cc30c4a9efff21d8116a";
         const controlTopic = "/k1egtWogWfA/WANGYE/user/get";
+
+        let lastSendTime = 0;
+        const sendInterval = 10; // 限制发送消息的最小间隔时间为1秒
 
         // 创建MQTT客户端实例
         const client = new Paho.MQTT.Client(mqttServer, mqttPort, clientId);
@@ -48,7 +51,7 @@
 
         // 连接成功回调函数
         function onConnect() {
-            document.getElementById("status").innerHTML = "Connected!";
+            document.getElementById("status").innerHTML = "已连接";
             document.getElementById("forwardButton").disabled = false;
             document.getElementById("backwardButton").disabled = false;
             document.getElementById("leftButton").disabled = false;
@@ -59,7 +62,7 @@
 
         // 连接失败回调函数
         function onFailure(error) {
-            document.getElementById("status").innerHTML = "Connection failed: " + error.errorMessage;
+            document.getElementById("status").innerHTML = "连接失败: " + error.errorMessage;
             console.error("Connection failed: " + error.errorMessage);
         }
 
@@ -71,7 +74,7 @@
         // 连接断开回调函数
         client.onConnectionLost = function(responseObject) {
             if (responseObject.errorCode !== 0) {
-                document.getElementById("status").innerHTML = "Connection lost: " + responseObject.errorMessage;
+                document.getElementById("status").innerHTML = "连接断开: " + responseObject.errorMessage;
                 console.error("Connection lost: " + responseObject.errorMessage);
             }
         };
@@ -97,13 +100,19 @@
             sendMessage("stop");
         });
 
-        // 发送消息函数
+        // 发送消息函数（带限流）
         function sendMessage(command) {
-            const messageContent = JSON.stringify({ command: command });
-            const message = new Paho.MQTT.Message(messageContent);
-            message.destinationName = controlTopic;
-            client.send(message);
-            console.log(`Message sent: ${messageContent}`);
+            const currentTime = new Date().getTime();
+            if (currentTime - lastSendTime >= sendInterval) {
+                const messageContent = JSON.stringify({ command: command });
+                const message = new Paho.MQTT.Message(messageContent);
+                message.destinationName = controlTopic;
+                client.send(message);
+                console.log(`Message sent: ${messageContent}`);
+                lastSendTime = currentTime;
+            } else {
+                console.log("发送太频繁，请稍后再试");
+            }
         }
     </script>
 </body>
